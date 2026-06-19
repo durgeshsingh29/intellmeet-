@@ -8,11 +8,26 @@ import authRoutes from "./routes/authRoutes.js";
 import meetingRoutes from "./routes/meetingRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175"
+].filter(Boolean);
+
 export function createApp() {
   const app = express();
 
   app.use(helmet());
-  app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173", credentials: true }));
+  app.use(
+    cors({
+      origin(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(new Error(`CORS blocked origin: ${origin}`));
+      },
+      credentials: true
+    })
+  );
   app.use(express.json({ limit: "2mb" }));
   app.use(cookieParser());
   app.use(morgan("dev"));
